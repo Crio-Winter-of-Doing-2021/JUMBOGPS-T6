@@ -2,13 +2,15 @@ package com.crio.jumbogps.Notification;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.time.Duration;
-import com.google.firebase.messaging.AndroidConfig;
-import com.google.firebase.messaging.AndroidNotification;
-import com.google.firebase.messaging.ApnsConfig;
-import com.google.firebase.messaging.Aps;
+
+import com.google.auth.oauth2.GoogleCredentials;
+import com.google.firebase.FirebaseApp;
+import com.google.firebase.FirebaseOptions;
+import com.google.firebase.messaging.FirebaseMessaging;
 import com.google.firebase.messaging.Message;
 import com.google.firebase.messaging.Notification;
+
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Service;
 
 import com.crio.jumbogps.model.LatLang;
@@ -49,28 +51,41 @@ public class NotificationSender {
 		return path;
 	}
 	
-	public void sendNotification(String topic,String message) {
-		String token = "dLYg7gQqJnJ4doeUUpyj7P:APA91bHNDwMGq-wzTkF3e-2zfbWYjEMsNB7zOFKBKUEi02kLIGdC_D210JdvM_431O2v3VaHEzLi5_AuMzXSQPyLrPvYFDxJ1O8u-xS94cG6wr9tSKRPhw4ziXNTOSOG3owU_bxpIszc";
-		AndroidConfig androidConfig = getAndroidConfig(topic);
-        ApnsConfig apnsConfig = getApnsConfig(topic);
-        Message.builder()
-                .setApnsConfig(apnsConfig).setAndroidConfig(androidConfig).setNotification(
-                        new Notification(topic, message)).setToken(token).build();
+	public void sendNotification(String topic,String body){
+		String token = "fntCH0meu-txE6AMFDp__M:APA91bHerUnhaIOQ6JYIhY-uJjB6f9g_hBUy82-xV97B7gLnIoOcm6asnzKBTejRKeajpsHWDOMjJgZr_QoNUgI9WFBXfPZznATWfmWcJycu2LXuv3p44CV1_r5Rd7qaBMczh7lR0lIj";
+		try{
+		GoogleCredentials googleCredentials = GoogleCredentials
+            .fromStream(new ClassPathResource("firebase-service-account.json").getInputStream());
+    	FirebaseOptions firebaseOptions = FirebaseOptions
+            .builder()
+            .setCredentials(googleCredentials)
+            .build();
+    	FirebaseApp app = FirebaseApp.initializeApp(firebaseOptions);
 
 		System.out.println("Not inside");
 
+		//FirebaseMessaging firebase = FirebaseMessaging.getInstance(app);
+		/*AndroidNotification notification = AndroidNotification.builder()
+                .setTitle(topic)
+                .setBody(body)
+                .build();*/
+
+        /*Message message = Message
+                .builder()
+                .setToken(token).putData("abc", "test")
+                //.setNotification(new Notification(topic, body))
+                .build();*/
+
+				Message message = Message.builder()
+				.putData("score", "850")
+				.putData("time", "2:45")
+				.setToken(token)
+				.build();
+
+				FirebaseMessaging.getInstance(app).sendAsync(message).get();
+		}catch(Exception e){
+			e.printStackTrace();
+		}
+
 	}
-
-	private AndroidConfig getAndroidConfig(String topic) {
-        return AndroidConfig.builder()
-                .setTtl(Duration.ofMinutes(2).toMillis()).setCollapseKey(topic)
-                .setPriority(AndroidConfig.Priority.HIGH)
-                .setNotification(AndroidNotification.builder().setTag(topic).build()).build();
-    }
-    private ApnsConfig getApnsConfig(String topic) {
-        return ApnsConfig.builder()
-                .setAps(Aps.builder().setCategory(topic).setThreadId(topic).build()).build();
-    }
-
-
 }
