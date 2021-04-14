@@ -120,13 +120,15 @@ public class AssetController {
 	
 	@GetMapping("/location/time/type")
 	public List<AssetHistory> getAssetsHistoryByIdAndTime(
-		 @RequestParam("type") Integer assetType,
+		 @RequestParam("type") String assetType,
 		 @RequestParam("startTime")@DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime startTime ,
 		 @RequestParam("endTime")  @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime endTime) {
 		
 		try {
-			
-			return assetHistoryRepository.getAssetDetailsByTypeAndTime(assetType,startTime,endTime);
+			if(assetType == null || assetType.contentEquals("undefined")){
+				return getAssetsHistoryByTime(startTime,endTime);
+			}
+			return assetHistoryRepository.getAssetDetailsByTypeAndTime(Integer.parseInt(assetType),startTime,endTime);
 		}catch(Exception e) {
 			e.printStackTrace();
 		}
